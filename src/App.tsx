@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getCustomers, getTrainings } from './api';
+import Navigation from './components/Navigation';
+import CustomerList from './components/customer/CustomerList';
+import TrainingList from './components/training/TrainingList';
 import type { Customer } from './types/CustomerTypes';
 import type { Training } from './types/TrainingTypes';
 
@@ -8,6 +11,19 @@ function App() {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(
+    window.location.hash === '#/trainings' ? 'trainings' : 'customers',
+  );
+
+  useEffect(() => {
+    function syncPage() {
+      setPage(window.location.hash === '#/trainings' ? 'trainings' : 'customers');
+    }
+
+    window.addEventListener('hashchange', syncPage);
+
+    return () => window.removeEventListener('hashchange', syncPage);
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -46,65 +62,16 @@ function App() {
 
   return (
     <main>
-      <section>
-        <h2>Customers</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>First name</th>
-              <th>Last name</th>
-              <th>Address</th>
-              <th>Postcode</th>
-              <th>City</th>
-              <th>Email</th>
-              <th>Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((customer) => (
-              <tr key={customer.id}>
-                <td>{customer.id}</td>
-                <td>{customer.firstname}</td>
-                <td>{customer.lastname}</td>
-                <td>{customer.streetaddress}</td>
-                <td>{customer.postcode}</td>
-                <td>{customer.city}</td>
-                <td>{customer.email}</td>
-                <td>{customer.phone}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section>
-        <h2>Trainings</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Date</th>
-              <th>Activity</th>
-              <th>Duration</th>
-              <th>Customer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trainings.map((training) => (
-              <tr key={training.id}>
-                <td>{training.id}</td>
-                <td>{new Date(training.date).toLocaleString()}</td>
-                <td>{training.activity}</td>
-                <td>{training.duration} min</td>
-                <td>
-                  {training.customer.firstname} {training.customer.lastname}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <Navigation />
+      {loading ? (
+        <p role="status">Loading database...</p>
+      ) : error ? (
+        <p role="alert">{error}</p>
+      ) : page === 'trainings' ? (
+        <TrainingList trainings={trainings} />
+      ) : (
+        <CustomerList customers={customers} />
+      )}
     </main>
   );
 }
