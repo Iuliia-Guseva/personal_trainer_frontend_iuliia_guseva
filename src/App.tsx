@@ -44,35 +44,21 @@ function App() {
     void loadData();
   }, []);
 
-  if (loading) {
-    return (
-      <main>
-        <p role="status">Loading database...</p>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main>
-        <p role="alert">{error}</p>
-      </main>
-    );
-  }
-
   return (
-    <main>
+    <div className="app-layout">
       <Navigation />
-      {loading ? (
-        <p role="status">Loading database...</p>
-      ) : error ? (
-        <p role="alert">{error}</p>
-      ) : page === 'trainings' ? (
-        <TrainingList trainings={trainings} />
-      ) : (
-        <CustomerList customers={customers} />
-      )}
-    </main>
+      <main className="page-content">
+        {loading ? (
+          <p role="status">Loading database...</p>
+        ) : error ? (
+          <p role="alert">{error}</p>
+        ) : page === 'trainings' ? (
+          <TrainingList trainings={trainings} />
+        ) : (
+          <CustomerList customers={customers} />
+        )}
+      </main>
+    </div>
   );
 }
 

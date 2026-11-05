@@ -8,12 +8,30 @@ interface CustomerListProps {
 type CustomerSortKey = keyof Customer;
 
 function CustomerList({ customers }: CustomerListProps) {
+  const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<CustomerSortKey>('id');
   const [ascending, setAscending] = useState(true);
 
-  const sortedCustomers = useMemo(
-    () =>
-      [...customers].sort((first, second) => {
+  const visibleCustomers = useMemo(() => {
+    const words = search
+      .trim()
+      .toLocaleLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    return [...customers]
+      .filter((customer) => {
+        const searchableText = Object.values(customer)
+          .join(' ')
+          .toLocaleLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+
+        return words.every((word) => searchableText.includes(word));
+      })
+      .sort((first, second) => {
         const firstValue = first[sortKey];
         const secondValue = second[sortKey];
         const comparison =
@@ -25,9 +43,8 @@ function CustomerList({ customers }: CustomerListProps) {
               });
 
         return ascending ? comparison : -comparison;
-      }),
-    [customers, sortKey, ascending],
-  );
+      });
+  }, [customers, search, sortKey, ascending]);
 
   function handleSort(key: CustomerSortKey) {
     if (sortKey === key) {
@@ -53,6 +70,15 @@ function CustomerList({ customers }: CustomerListProps) {
   return (
     <section>
       <h1>Customers</h1>
+      <label>
+        Search customers
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search by name, address, email..."
+        />
+      </label>
       <table>
         <thead>
           <tr>
@@ -67,7 +93,7 @@ function CustomerList({ customers }: CustomerListProps) {
           </tr>
         </thead>
         <tbody>
-          {sortedCustomers.map((customer) => (
+          {visibleCustomers.map((customer) => (
             <tr key={customer.id}>
               <td>{customer.id}</td>
               <td>{customer.firstname}</td>
@@ -79,6 +105,11 @@ function CustomerList({ customers }: CustomerListProps) {
               <td>{customer.phone}</td>
             </tr>
           ))}
+          {visibleCustomers.length === 0 && (
+            <tr>
+              <td colSpan={8}>No customers match your search.</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </section>

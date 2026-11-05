@@ -8,12 +8,38 @@ interface TrainingListProps {
 type TrainingSortKey = 'id' | 'date' | 'activity' | 'duration' | 'customer';
 
 function TrainingList({ trainings }: TrainingListProps) {
+  const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<TrainingSortKey>('id');
   const [ascending, setAscending] = useState(true);
 
-  const sortedTrainings = useMemo(
-    () =>
-      [...trainings].sort((first, second) => {
+  const visibleTrainings = useMemo(() => {
+    const words = search
+      .trim()
+      .toLocaleLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    return [...trainings]
+      .filter((training) => {
+        const searchableText = [
+          training.id,
+          training.date,
+          new Date(training.date).toLocaleString(),
+          training.activity,
+          training.duration,
+          training.customer.firstname,
+          training.customer.lastname,
+        ]
+          .join(' ')
+          .toLocaleLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+
+        return words.every((word) => searchableText.includes(word));
+      })
+      .sort((first, second) => {
         let comparison: number;
 
         switch (sortKey) {
@@ -41,9 +67,8 @@ function TrainingList({ trainings }: TrainingListProps) {
         }
 
         return ascending ? comparison : -comparison;
-      }),
-    [trainings, sortKey, ascending],
-  );
+      });
+  }, [trainings, search, sortKey, ascending]);
 
   function handleSort(key: TrainingSortKey) {
     if (sortKey === key) {
@@ -69,6 +94,15 @@ function TrainingList({ trainings }: TrainingListProps) {
   return (
     <section>
       <h1>Trainings</h1>
+      <label>
+        Search trainings
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search by activity, customer, date..."
+        />
+      </label>
       <table>
         <thead>
           <tr>
@@ -80,7 +114,7 @@ function TrainingList({ trainings }: TrainingListProps) {
           </tr>
         </thead>
         <tbody>
-          {sortedTrainings.map((training) => (
+          {visibleTrainings.map((training) => (
             <tr key={training.id}>
               <td>{training.id}</td>
               <td>{new Date(training.date).toLocaleString()}</td>
@@ -91,6 +125,11 @@ function TrainingList({ trainings }: TrainingListProps) {
               </td>
             </tr>
           ))}
+          {visibleTrainings.length === 0 && (
+            <tr>
+              <td colSpan={5}>No trainings match your search.</td>
+            </tr>
+          )}
         </tbody>
       </table>
     </section>
