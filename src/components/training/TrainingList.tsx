@@ -7,6 +7,34 @@ interface TrainingListProps {
 
 type TrainingSortKey = 'id' | 'date' | 'activity' | 'duration' | 'customer';
 
+const trainingDateFormatter = new Intl.DateTimeFormat('fi-FI', {
+  timeZone: 'Europe/Helsinki',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+function formatTrainingDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid training date: ${value}`);
+  }
+
+  const parts = trainingDateFormatter.formatToParts(date);
+  const getPart = (type: Intl.DateTimeFormatPartTypes) => {
+    const part = parts.find((datePart) => datePart.type === type);
+    if (!part) {
+      throw new Error(`Could not format training date: missing ${type}`);
+    }
+    return part.value;
+  };
+
+  return `${getPart('day')}.${getPart('month')}.${getPart('year')} ${getPart('hour')}:${getPart('minute')}`;
+}
+
 function TrainingList({ trainings }: TrainingListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<TrainingSortKey>('id');
@@ -26,7 +54,7 @@ function TrainingList({ trainings }: TrainingListProps) {
         const searchableText = [
           training.id,
           training.date,
-          new Date(training.date).toLocaleString(),
+          formatTrainingDate(training.date),
           training.activity,
           training.duration,
           training.customer.firstname,
@@ -117,7 +145,7 @@ function TrainingList({ trainings }: TrainingListProps) {
           {visibleTrainings.map((training) => (
             <tr key={training.id}>
               <td>{training.id}</td>
-              <td>{new Date(training.date).toLocaleString()}</td>
+              <td>{formatTrainingDate(training.date)}</td>
               <td>{training.activity}</td>
               <td>{training.duration} min</td>
               <td>
