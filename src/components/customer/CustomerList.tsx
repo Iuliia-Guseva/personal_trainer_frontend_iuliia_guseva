@@ -3,14 +3,17 @@ import type { Customer } from '../../types/CustomerTypes';
 
 interface CustomerListProps {
   customers: Customer[];
+  onDeleteCustomer: (customerId: number) => Promise<void>;
 }
 
 type CustomerSortKey = keyof Customer;
 
-function CustomerList({ customers }: CustomerListProps) {
+function CustomerList({ customers, onDeleteCustomer }: CustomerListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<CustomerSortKey>('id');
   const [ascending, setAscending] = useState(true);
+  const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const visibleCustomers = useMemo(() => {
     const words = search
@@ -67,9 +70,30 @@ function CustomerList({ customers }: CustomerListProps) {
     );
   }
 
+  async function handleDeleteCustomer(customer: Customer) {
+    const fullName = `${customer.firstname} ${customer.lastname}`;
+    const confirmed = window.confirm(
+      `Delete ${fullName}? This will also delete all of their training sessions. This action cannot be undone.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingCustomerId(customer.id);
+    setDeleteError('');
+    try {
+      await onDeleteCustomer(customer.id);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Could not delete customer.');
+    } finally {
+      setDeletingCustomerId(null);
+    }
+  }
+
   return (
     <section>
       <h1>Customers</h1>
+      {deleteError && <p role="alert">{deleteError}</p>}
       <label>
         Search customers
         <input
@@ -90,6 +114,7 @@ function CustomerList({ customers }: CustomerListProps) {
             {sortHeading('City', 'city')}
             {sortHeading('Email', 'email')}
             {sortHeading('Phone', 'phone')}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -103,11 +128,21 @@ function CustomerList({ customers }: CustomerListProps) {
               <td>{customer.city}</td>
               <td>{customer.email}</td>
               <td>{customer.phone}</td>
+              <td>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteCustomer(customer)}
+                  disabled={deletingCustomerId !== null}
+                  aria-label={`Delete ${customer.firstname} ${customer.lastname}`}
+                >
+                  {deletingCustomerId === customer.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </td>
             </tr>
           ))}
           {visibleCustomers.length === 0 && (
             <tr>
-              <td colSpan={8}>No customers match your search.</td>
+              <td colSpan={9}>No customers match your search.</td>
             </tr>
           )}
         </tbody>

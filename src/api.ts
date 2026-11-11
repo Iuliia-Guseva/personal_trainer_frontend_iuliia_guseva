@@ -3,8 +3,8 @@ import type { Training } from './types/TrainingTypes';
 
 const API_BASE_URL = 'https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api';
 
-async function request(path: string): Promise<Response> {
-  const response = await fetch(`${API_BASE_URL}${path}`);
+async function request(path: string, init?: RequestInit): Promise<Response> {
+  const response = await fetch(`${API_BASE_URL}${path}`, init);
 
   if (!response.ok) {
     const details = await response.text();
@@ -12,6 +12,10 @@ async function request(path: string): Promise<Response> {
   }
 
   return response;
+}
+
+export async function deleteCustomer(id: number): Promise<void> {
+  await request(`/customers/${id}`, { method: 'DELETE' });
 }
 
 function getIdFromHref(href: string): number {

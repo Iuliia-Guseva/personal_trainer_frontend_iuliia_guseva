@@ -8,6 +8,7 @@ Front-end application for managing customers and trainings as a Front-End Progra
 - Sortable columns on both list pages; click a column heading to change the sort order.
 - Search across customer fields and training details, including the customer's name.
 - Customer names displayed in the training list.
+- Customer deletion with confirmation; deleting a customer also deletes their training sessions.
 - Loading and API error states.
 
 ## Technologies

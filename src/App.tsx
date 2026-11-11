@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getCustomers, getTrainings } from './api';
+import { deleteCustomer, getCustomers, getTrainings } from './api';
 import Navigation from './components/Navigation';
 import CustomerList from './components/customer/CustomerList';
 import TrainingList from './components/training/TrainingList';
@@ -44,6 +44,16 @@ function App() {
     void loadData();
   }, []);
 
+  async function handleDeleteCustomer(customerId: number) {
+    await deleteCustomer(customerId);
+    setCustomers((currentCustomers) =>
+      currentCustomers.filter((customer) => customer.id !== customerId),
+    );
+    setTrainings((currentTrainings) =>
+      currentTrainings.filter((training) => training.customer.id !== customerId),
+    );
+  }
+
   return (
     <div className="app-layout">
       <Navigation />
@@ -55,7 +65,7 @@ function App() {
         ) : page === 'trainings' ? (
           <TrainingList trainings={trainings} />
         ) : (
-          <CustomerList customers={customers} />
+          <CustomerList customers={customers} onDeleteCustomer={handleDeleteCustomer} />
         )}
       </main>
     </div>
