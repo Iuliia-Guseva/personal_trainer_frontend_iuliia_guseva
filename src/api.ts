@@ -18,6 +18,10 @@ export async function deleteCustomer(id: number): Promise<void> {
   await request(`/customers/${id}`, { method: 'DELETE' });
 }
 
+export async function deleteTraining(id: number): Promise<void> {
+  await request(`/trainings/${id}`, { method: 'DELETE' });
+}
+
 function getIdFromHref(href: string): number {
   const parts = new URL(href).pathname.split('/').filter(Boolean);
   const id = Number(parts[parts.length - 1]);

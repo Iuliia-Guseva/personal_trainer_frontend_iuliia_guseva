@@ -3,6 +3,7 @@ import type { Training } from '../../types/TrainingTypes';
 
 interface TrainingListProps {
   trainings: Training[];
+  onDeleteTraining: (trainingId: number) => Promise<void>;
 }
 
 type TrainingSortKey = 'id' | 'date' | 'activity' | 'duration' | 'customer';
@@ -35,10 +36,12 @@ function formatTrainingDate(value: string): string {
   return `${getPart('day')}.${getPart('month')}.${getPart('year')} ${getPart('hour')}:${getPart('minute')}`;
 }
 
-function TrainingList({ trainings }: TrainingListProps) {
+function TrainingList({ trainings, onDeleteTraining }: TrainingListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<TrainingSortKey>('id');
   const [ascending, setAscending] = useState(true);
+  const [deletingTrainingId, setDeletingTrainingId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState('');
 
   const visibleTrainings = useMemo(() => {
     const words = search
@@ -119,9 +122,30 @@ function TrainingList({ trainings }: TrainingListProps) {
     );
   }
 
+  async function handleDeleteTraining(training: Training) {
+    const customerName = `${training.customer.firstname} ${training.customer.lastname}`;
+    const confirmed = window.confirm(
+      `Delete ${training.activity} on ${formatTrainingDate(training.date)} for ${customerName}? This action cannot be undone.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingTrainingId(training.id);
+    setDeleteError('');
+    try {
+      await onDeleteTraining(training.id);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Could not delete training.');
+    } finally {
+      setDeletingTrainingId(null);
+    }
+  }
+
   return (
     <section>
       <h1>Trainings</h1>
+      {deleteError && <p role="alert">{deleteError}</p>}
       <label>
         Search trainings
         <input
@@ -139,6 +163,7 @@ function TrainingList({ trainings }: TrainingListProps) {
             {sortHeading('Activity', 'activity')}
             {sortHeading('Duration', 'duration')}
             {sortHeading('Customer', 'customer')}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -151,11 +176,21 @@ function TrainingList({ trainings }: TrainingListProps) {
               <td>
                 {training.customer.firstname} {training.customer.lastname}
               </td>
+              <td>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteTraining(training)}
+                  disabled={deletingTrainingId !== null}
+                  aria-label={`Delete ${training.activity} for ${training.customer.firstname} ${training.customer.lastname}`}
+                >
+                  {deletingTrainingId === training.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </td>
             </tr>
           ))}
           {visibleTrainings.length === 0 && (
             <tr>
-              <td colSpan={5}>No trainings match your search.</td>
+              <td colSpan={6}>No trainings match your search.</td>
             </tr>
           )}
         </tbody>

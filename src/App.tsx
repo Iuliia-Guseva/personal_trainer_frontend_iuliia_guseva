@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { deleteCustomer, getCustomers, getTrainings } from './api';
+import { deleteCustomer, deleteTraining, getCustomers, getTrainings } from './api';
 import Navigation from './components/Navigation';
 import CustomerList from './components/customer/CustomerList';
 import TrainingList from './components/training/TrainingList';
@@ -54,6 +54,13 @@ function App() {
     );
   }
 
+  async function handleDeleteTraining(trainingId: number) {
+    await deleteTraining(trainingId);
+    setTrainings((currentTrainings) =>
+      currentTrainings.filter((training) => training.id !== trainingId),
+    );
+  }
+
   return (
     <div className="app-layout">
       <Navigation />
@@ -63,7 +70,7 @@ function App() {
         ) : error ? (
           <p role="alert">{error}</p>
         ) : page === 'trainings' ? (
-          <TrainingList trainings={trainings} />
+          <TrainingList trainings={trainings} onDeleteTraining={handleDeleteTraining} />
         ) : (
           <CustomerList customers={customers} onDeleteCustomer={handleDeleteCustomer} />
         )}
