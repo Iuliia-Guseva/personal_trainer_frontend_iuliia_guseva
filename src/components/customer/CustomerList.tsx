@@ -1,19 +1,22 @@
 import { useMemo, useState } from 'react';
-import type { Customer } from '../../types/CustomerTypes';
+import type { Customer, CustomerDetails } from '../../types/CustomerTypes';
+import UpdateCustomer from './UpdateCustomer';
 
 interface CustomerListProps {
   customers: Customer[];
   onDeleteCustomer: (customerId: number) => Promise<void>;
+  onUpdateCustomer: (customerId: number, details: CustomerDetails) => Promise<void>;
 }
 
 type CustomerSortKey = keyof Customer;
 
-function CustomerList({ customers, onDeleteCustomer }: CustomerListProps) {
+function CustomerList({ customers, onDeleteCustomer, onUpdateCustomer }: CustomerListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<CustomerSortKey>('id');
   const [ascending, setAscending] = useState(true);
   const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState('');
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
   const visibleCustomers = useMemo(() => {
     const words = search
@@ -94,6 +97,15 @@ function CustomerList({ customers, onDeleteCustomer }: CustomerListProps) {
     <section>
       <h1>Customers</h1>
       {deleteError && <p role="alert">{deleteError}</p>}
+      {editingCustomer && (
+        <UpdateCustomer
+          key={editingCustomer.id}
+          customer={editingCustomer}
+          onSave={onUpdateCustomer}
+          onCancel={() => setEditingCustomer(null)}
+          onSaved={() => setEditingCustomer(null)}
+        />
+      )}
       <label>
         Search customers
         <input
@@ -129,6 +141,13 @@ function CustomerList({ customers, onDeleteCustomer }: CustomerListProps) {
               <td>{customer.email}</td>
               <td>{customer.phone}</td>
               <td>
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(customer)}
+                  disabled={deletingCustomerId !== null}
+                >
+                  Edit
+                </button>
                 <button
                   type="button"
                   onClick={() => void handleDeleteCustomer(customer)}

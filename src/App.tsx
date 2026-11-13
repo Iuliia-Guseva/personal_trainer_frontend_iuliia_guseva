@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
-import { deleteCustomer, deleteTraining, getCustomers, getTrainings } from './api';
+import {
+  deleteCustomer,
+  deleteTraining,
+  getCustomers,
+  getTrainings,
+  updateCustomer,
+} from './api';
 import Navigation from './components/Navigation';
 import CustomerList from './components/customer/CustomerList';
 import TrainingList from './components/training/TrainingList';
-import type { Customer } from './types/CustomerTypes';
+import type { Customer, CustomerDetails } from './types/CustomerTypes';
 import type { Training } from './types/TrainingTypes';
 
 function App() {
@@ -61,6 +67,22 @@ function App() {
     );
   }
 
+  async function handleUpdateCustomer(customerId: number, details: CustomerDetails) {
+    await updateCustomer(customerId, details);
+    setCustomers((currentCustomers) =>
+      currentCustomers.map((customer) =>
+        customer.id === customerId ? { ...details, id: customerId } : customer,
+      ),
+    );
+    setTrainings((currentTrainings) =>
+      currentTrainings.map((training) =>
+        training.customer.id === customerId
+          ? { ...training, customer: { ...details, id: customerId } }
+          : training,
+      ),
+    );
+  }
+
   return (
     <div className="app-layout">
       <Navigation />
@@ -72,7 +94,11 @@ function App() {
         ) : page === 'trainings' ? (
           <TrainingList trainings={trainings} onDeleteTraining={handleDeleteTraining} />
         ) : (
-          <CustomerList customers={customers} onDeleteCustomer={handleDeleteCustomer} />
+          <CustomerList
+            customers={customers}
+            onDeleteCustomer={handleDeleteCustomer}
+            onUpdateCustomer={handleUpdateCustomer}
+          />
         )}
       </main>
     </div>

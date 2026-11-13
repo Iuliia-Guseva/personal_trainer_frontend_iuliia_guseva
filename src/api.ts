@@ -1,4 +1,4 @@
-import type { Customer, CustomerCollection } from './types/CustomerTypes';
+import type { Customer, CustomerCollection, CustomerDetails } from './types/CustomerTypes';
 import type { Training } from './types/TrainingTypes';
 
 const API_BASE_URL = 'https://customer-rest-service-frontend-personaltrainer.2.rahtiapp.fi/api';
@@ -16,6 +16,14 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
 
 export async function deleteCustomer(id: number): Promise<void> {
   await request(`/customers/${id}`, { method: 'DELETE' });
+}
+
+export async function updateCustomer(id: number, customer: CustomerDetails): Promise<void> {
+  await request(`/customers/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(customer),
+  });
 }
 
 export async function deleteTraining(id: number): Promise<void> {
