@@ -1,22 +1,30 @@
 import { useMemo, useState } from 'react';
 import type { Customer, CustomerDetails } from '../../types/CustomerTypes';
+import AddCustomer from './AddCustomer';
 import UpdateCustomer from './UpdateCustomer';
 
 interface CustomerListProps {
   customers: Customer[];
+  onCreateCustomer: (details: CustomerDetails) => Promise<void>;
   onDeleteCustomer: (customerId: number) => Promise<void>;
   onUpdateCustomer: (customerId: number, details: CustomerDetails) => Promise<void>;
 }
 
 type CustomerSortKey = keyof Customer;
 
-function CustomerList({ customers, onDeleteCustomer, onUpdateCustomer }: CustomerListProps) {
+function CustomerList({
+  customers,
+  onCreateCustomer,
+  onDeleteCustomer,
+  onUpdateCustomer,
+}: CustomerListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<CustomerSortKey>('id');
   const [ascending, setAscending] = useState(true);
   const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [addingCustomer, setAddingCustomer] = useState(false);
 
   const visibleCustomers = useMemo(() => {
     const words = search
@@ -97,6 +105,17 @@ function CustomerList({ customers, onDeleteCustomer, onUpdateCustomer }: Custome
     <section>
       <h1>Customers</h1>
       {deleteError && <p role="alert">{deleteError}</p>}
+      {addingCustomer ? (
+        <AddCustomer
+          onAdd={onCreateCustomer}
+          onCancel={() => setAddingCustomer(false)}
+          onAdded={() => setAddingCustomer(false)}
+        />
+      ) : (
+        <button type="button" onClick={() => setAddingCustomer(true)}>
+          Add customer
+        </button>
+      )}
       {editingCustomer && (
         <UpdateCustomer
           key={editingCustomer.id}

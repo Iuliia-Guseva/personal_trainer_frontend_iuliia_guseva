@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  createCustomer,
   deleteCustomer,
   deleteTraining,
   getCustomers,
@@ -60,6 +61,11 @@ function App() {
     );
   }
 
+  async function handleCreateCustomer(details: CustomerDetails) {
+    const customer = await createCustomer(details);
+    setCustomers((currentCustomers) => [...currentCustomers, customer]);
+  }
+
   async function handleDeleteTraining(trainingId: number) {
     await deleteTraining(trainingId);
     setTrainings((currentTrainings) =>
@@ -96,6 +102,7 @@ function App() {
         ) : (
           <CustomerList
             customers={customers}
+            onCreateCustomer={handleCreateCustomer}
             onDeleteCustomer={handleDeleteCustomer}
             onUpdateCustomer={handleUpdateCustomer}
           />
