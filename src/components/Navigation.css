@@ -7,11 +7,13 @@ body {
 }
 
 .page-content {
+  box-sizing: border-box;
   min-width: 0;
   min-height: 100vh;
-  margin-left: 12px;
-  padding: 24px;
+  margin-left: 232px;
+  padding: 42px clamp(20px, 4vw, 64px);
   overflow-x: auto;
+  background: #f3f6fa;
 }
 
 .navigation-sidebar {
@@ -21,54 +23,19 @@ body {
   left: 0;
   z-index: 10;
   display: flex;
-  width: 12px;
+  width: 232px;
   height: 100vh;
   flex-direction: column;
-  overflow: hidden;
-  padding: 0;
+  padding: 22px 14px;
   color: #24364b;
-  background: #e7edf4;
+  background: #e8eef5;
   font-family: Arial, Helvetica, sans-serif;
   box-shadow: 2px 0 12px rgb(22 44 67 / 8%);
-  transition: width 180ms ease, padding 180ms ease;
-}
-
-.navigation-sidebar:hover,
-.navigation-sidebar:focus-within {
-  width: 240px;
-  padding: 22px 14px;
-}
-
-.navigation-sidebar::after {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  width: 3px;
-  height: 42px;
-  border-radius: 3px;
-  background: #8ba9c3;
-  content: '';
-  transform: translateY(-50%);
-}
-
-.navigation-sidebar:hover::after,
-.navigation-sidebar:focus-within::after {
-  display: none;
 }
 
 .navigation-brand,
 .navigation-links {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-}
-
-.navigation-sidebar:hover .navigation-brand,
-.navigation-sidebar:hover .navigation-links,
-.navigation-sidebar:focus-within .navigation-brand,
-.navigation-sidebar:focus-within .navigation-links {
   opacity: 1;
-  pointer-events: auto;
 }
 
 .navigation-brand {
@@ -124,7 +91,7 @@ body {
 .navigation-link:hover,
 .navigation-link.active {
   color: #213e5b;
-  background: #c5dced;
+  background: #cbddec;
 }
 
 .navigation-link.active {
@@ -143,31 +110,30 @@ body {
 }
 
 @media (max-width: 640px) {
-  .navigation-sidebar:hover,
-  .navigation-sidebar:focus-within {
-    width: min(240px, 85vw);
-    padding: 18px 10px;
+  .navigation-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 12px;
   }
 
   .navigation-brand {
-    gap: 7px;
-    margin-right: 0;
-    margin-left: 2px;
+    margin: 0 4px 12px;
   }
 
-  .navigation-brand h1 {
-    font-size: 14px;
+  .navigation-links {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .navigation-link {
+    min-height: 40px;
   }
 
   .page-content {
-    padding: 16px 12px;
+    min-height: calc(100vh - 120px);
+    margin-left: 0;
+    padding: 24px 14px;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .navigation-sidebar,
-  .navigation-brand,
-  .navigation-links {
-    transition: none;
-  }
-}

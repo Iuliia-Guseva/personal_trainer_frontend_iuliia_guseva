@@ -1,0 +1,236 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1d2b3c;
+  background: #f3f6fa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  font-optical-sizing: auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid #477eae;
+  border-radius: 7px;
+  color: #fff;
+  background: #477eae;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: #356a99;
+  background: #356a99;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgb(71 126 174 / 30%);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.page-content section {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+}
+
+.page-content section > h1 {
+  margin: 0 0 8px;
+  color: #17283c;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.page-content section > label {
+  display: grid;
+  width: min(100%, 420px);
+  gap: 7px;
+  margin: 22px 0 16px;
+  color: #627186;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input,
+select {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #d6dee8;
+  border-radius: 7px;
+  color: #26384d;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(24 43 65 / 3%);
+}
+
+input::placeholder {
+  color: #9aa8b8;
+}
+
+.page-content table {
+  width: 100%;
+  min-width: 760px;
+  border: 1px solid #dce4ed;
+  border-spacing: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(31 56 82 / 5%);
+  font-size: 13px;
+  text-align: left;
+}
+
+.page-content th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #dce4ed;
+  color: #51647a;
+  background: #f4f7fa;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page-content td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8edf2;
+  color: #34475d;
+  white-space: nowrap;
+}
+
+.page-content tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.page-content tbody tr:hover {
+  background: #f8fafc;
+}
+
+.page-content th button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.page-content th button:hover:not(:disabled) {
+  border: 0;
+  color: #2f6798;
+  background: transparent;
+}
+
+.page-content td button + button {
+  margin-left: 7px;
+}
+
+.page-content td button[aria-label^="Delete"] {
+  border-color: #efc7c3;
+  color: #c6493f;
+  background: #fff;
+}
+
+.page-content td button[aria-label^="Delete"]:hover:not(:disabled) {
+  border-color: #d97770;
+  color: #a9362e;
+  background: #fff4f2;
+}
+
+.page-content section > form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+  margin: 18px 0 24px;
+  padding: 22px;
+  border: 1px solid #dce4ed;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(31 56 82 / 5%);
+}
+
+.page-content section > form h2,
+.page-content section > form p[role="alert"],
+.page-content section > form > button {
+  grid-column: 1 / -1;
+}
+
+.page-content section > form h2 {
+  margin: 0;
+  color: #1d2b3c;
+  font-size: 20px;
+}
+
+.page-content section > form label {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  color: #52657a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.page-content section > form > button {
+  justify-self: start;
+}
+
+.page-content section > form > button + button {
+  grid-column: 1 / -1;
+  margin-top: -8px;
+  border-color: #d4dde7;
+  color: #42566c;
+  background: #fff;
+}
+
+.page-content section > form > button + button:hover:not(:disabled) {
+  border-color: #aebdcd;
+  background: #f5f8fb;
+}
+
+.page-content [role="alert"] {
+  color: #a9362e;
+}
+
+@media (max-width: 640px) {
+  .page-content table {
+    min-width: 700px;
+  }
+
+  .page-content section > form {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
