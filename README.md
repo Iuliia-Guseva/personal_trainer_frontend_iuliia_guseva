@@ -11,6 +11,7 @@ Front-end application for managing customers and trainings as a Front-End Progra
 - Customer creation.
 - Customer editing.
 - Customer deletion with confirmation; deleting a customer also deletes their training sessions.
+- Training creation for a selected customer, with date and time input.
 - Training deletion with confirmation.
 - Loading and API error states.
 

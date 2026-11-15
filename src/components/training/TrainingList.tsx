@@ -1,8 +1,15 @@
 import { useMemo, useState } from 'react';
+import type { Customer } from '../../types/CustomerTypes';
 import type { Training } from '../../types/TrainingTypes';
+import AddTraining from './AddTraining';
 
 interface TrainingListProps {
   trainings: Training[];
+  customers: Customer[];
+  onAddTraining: (
+    details: Omit<Training, 'id' | 'customer'>,
+    customerId: number,
+  ) => Promise<void>;
   onDeleteTraining: (trainingId: number) => Promise<void>;
 }
 
@@ -36,12 +43,18 @@ function formatTrainingDate(value: string): string {
   return `${getPart('day')}.${getPart('month')}.${getPart('year')} ${getPart('hour')}:${getPart('minute')}`;
 }
 
-function TrainingList({ trainings, onDeleteTraining }: TrainingListProps) {
+function TrainingList({
+  trainings,
+  customers,
+  onAddTraining,
+  onDeleteTraining,
+}: TrainingListProps) {
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<TrainingSortKey>('id');
   const [ascending, setAscending] = useState(true);
   const [deletingTrainingId, setDeletingTrainingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState('');
+  const [addingTraining, setAddingTraining] = useState(false);
 
   const visibleTrainings = useMemo(() => {
     const words = search
@@ -146,6 +159,18 @@ function TrainingList({ trainings, onDeleteTraining }: TrainingListProps) {
     <section>
       <h1>Trainings</h1>
       {deleteError && <p role="alert">{deleteError}</p>}
+      {addingTraining ? (
+        <AddTraining
+          customers={customers}
+          onAdd={onAddTraining}
+          onCancel={() => setAddingTraining(false)}
+          onAdded={() => setAddingTraining(false)}
+        />
+      ) : (
+        <button type="button" onClick={() => setAddingTraining(true)}>
+          Add training
+        </button>
+      )}
       <label>
         Search trainings
         <input

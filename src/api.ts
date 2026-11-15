@@ -49,6 +49,27 @@ export async function deleteTraining(id: number): Promise<void> {
   await request(`/trainings/${id}`, { method: 'DELETE' });
 }
 
+export async function createTraining(
+  training: Omit<Training, 'id' | 'customer'>,
+  customer: Customer,
+): Promise<Training> {
+  const response = await request('/trainings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...training,
+      customer: `${API_BASE_URL}/customers/${customer.id}`,
+    }),
+  });
+  const createdTraining: { _links: { self: { href: string } } } = await response.json();
+
+  return {
+    ...training,
+    id: getIdFromHref(createdTraining._links.self.href),
+    customer,
+  };
+}
+
 function getIdFromHref(href: string): number {
   const parts = new URL(href).pathname.split('/').filter(Boolean);
   const id = Number(parts[parts.length - 1]);

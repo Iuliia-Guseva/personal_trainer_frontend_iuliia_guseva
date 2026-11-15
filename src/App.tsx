@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   createCustomer,
+  createTraining,
   deleteCustomer,
   deleteTraining,
   getCustomers,
@@ -73,6 +74,19 @@ function App() {
     );
   }
 
+  async function handleCreateTraining(
+    details: Omit<Training, 'id' | 'customer'>,
+    customerId: number,
+  ) {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) {
+      throw new Error('The selected customer could not be found.');
+    }
+
+    const training = await createTraining(details, customer);
+    setTrainings((currentTrainings) => [...currentTrainings, training]);
+  }
+
   async function handleUpdateCustomer(customerId: number, details: CustomerDetails) {
     await updateCustomer(customerId, details);
     setCustomers((currentCustomers) =>
@@ -98,7 +112,12 @@ function App() {
         ) : error ? (
           <p role="alert">{error}</p>
         ) : page === 'trainings' ? (
-          <TrainingList trainings={trainings} onDeleteTraining={handleDeleteTraining} />
+          <TrainingList
+            trainings={trainings}
+            customers={customers}
+            onAddTraining={handleCreateTraining}
+            onDeleteTraining={handleDeleteTraining}
+          />
         ) : (
           <CustomerList
             customers={customers}
