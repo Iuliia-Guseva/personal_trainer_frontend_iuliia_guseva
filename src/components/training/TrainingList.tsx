@@ -52,6 +52,8 @@ function TrainingList({
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<TrainingSortKey>('id');
   const [ascending, setAscending] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   const [deletingTrainingId, setDeletingTrainingId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState('');
   const [addingTraining, setAddingTraining] = useState(false);
@@ -114,7 +116,18 @@ function TrainingList({
       });
   }, [trainings, search, sortKey, ascending]);
 
+  const pageCount = Math.ceil(visibleTrainings.length / pageSize);
+  const currentPage = Math.min(page, pageCount || 1);
+  const pageTrainings = visibleTrainings.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const firstTrainingNumber =
+    visibleTrainings.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const lastTrainingNumber = Math.min(currentPage * pageSize, visibleTrainings.length);
+
   function handleSort(key: TrainingSortKey) {
+    setPage(1);
     if (sortKey === key) {
       setAscending((current) => !current);
     } else {
@@ -156,8 +169,42 @@ function TrainingList({
   }
 
   return (
-    <section>
-      <h1>Trainings</h1>
+    <section className="listing-page">
+      <div className="listing-toolbar">
+        <div className="listing-heading">
+          <h1>Trainings</h1>
+          <p>Manage your training sessions</p>
+        </div>
+        <div className="listing-controls">
+          <label className="listing-search">
+            <span className="visually-hidden">Search trainings</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.8" cy="10.8" r="6.3" />
+              <path d="m15.5 15.5 4.2 4.2" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search trainings..."
+            />
+          </label>
+          <div className="listing-actions">
+            {addingTraining ? (
+              <button type="button" onClick={() => setAddingTraining(false)}>
+                Cancel
+              </button>
+            ) : (
+              <button type="button" onClick={() => setAddingTraining(true)}>
+                <span aria-hidden="true">+</span> Add training
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
       {deleteError && <p role="alert">{deleteError}</p>}
       {addingTraining ? (
         <AddTraining
@@ -166,60 +213,94 @@ function TrainingList({
           onCancel={() => setAddingTraining(false)}
           onAdded={() => setAddingTraining(false)}
         />
-      ) : (
-        <button type="button" onClick={() => setAddingTraining(true)}>
-          Add training
-        </button>
-      )}
-      <label>
-        Search trainings
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by activity, customer, date..."
-        />
-      </label>
-      <table>
-        <thead>
-          <tr>
-            {sortHeading('ID', 'id')}
-            {sortHeading('Date', 'date')}
-            {sortHeading('Activity', 'activity')}
-            {sortHeading('Duration', 'duration')}
-            {sortHeading('Customer', 'customer')}
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {visibleTrainings.map((training) => (
-            <tr key={training.id}>
-              <td>{training.id}</td>
-              <td>{formatTrainingDate(training.date)}</td>
-              <td>{training.activity}</td>
-              <td>{training.duration} min</td>
-              <td>
-                {training.customer.firstname} {training.customer.lastname}
-              </td>
-              <td>
-                <button
-                  type="button"
-                  onClick={() => void handleDeleteTraining(training)}
-                  disabled={deletingTrainingId !== null}
-                  aria-label={`Delete ${training.activity} for ${training.customer.firstname} ${training.customer.lastname}`}
-                >
-                  {deletingTrainingId === training.id ? 'Deleting...' : 'Delete'}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {visibleTrainings.length === 0 && (
+      ) : null}
+      <div className="listing-table-container">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={6}>No trainings match your search.</td>
+              {sortHeading('#', 'id')}
+              {sortHeading('Date', 'date')}
+              {sortHeading('Activity', 'activity')}
+              {sortHeading('Duration', 'duration')}
+              {sortHeading('Customer', 'customer')}
+              <th>Actions</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pageTrainings.map((training) => (
+              <tr key={training.id}>
+                <td>{training.id}</td>
+                <td>{formatTrainingDate(training.date)}</td>
+                <td>{training.activity}</td>
+                <td>{training.duration} min</td>
+                <td>
+                  {training.customer.firstname} {training.customer.lastname}
+                </td>
+                <td className="listing-row-actions">
+                  <button
+                    type="button"
+                    className="listing-delete"
+                    onClick={() => void handleDeleteTraining(training)}
+                    disabled={deletingTrainingId !== null}
+                    aria-label={`Delete ${training.activity} for ${training.customer.firstname} ${training.customer.lastname}`}
+                    title="Delete training"
+                  >
+                    {deletingTrainingId === training.id ? (
+                      '...'
+                    ) : (
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 7h16M9 7V4h6v3m3 0-.8 13H6.8L6 7m4 3v6m4-6v6" />
+                      </svg>
+                    )}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {visibleTrainings.length === 0 && (
+              <tr>
+                <td colSpan={6}>No trainings match your search.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="listing-pagination" aria-label="Training list pagination">
+        <label className="listing-page-size">
+          Rows per page:
+          <select
+            value={pageSize}
+            onChange={(event) => {
+              setPageSize(Number(event.target.value));
+              setPage(1);
+            }}
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+          </select>
+        </label>
+        <span className="listing-page-range" aria-live="polite">
+          {firstTrainingNumber}-{lastTrainingNumber} of {visibleTrainings.length}
+        </span>
+        <div className="listing-page-navigation">
+          <button
+            type="button"
+            aria-label="Previous page"
+            onClick={() => setPage(currentPage - 1)}
+            disabled={currentPage <= 1}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Next page"
+            onClick={() => setPage(currentPage + 1)}
+            disabled={currentPage >= pageCount}
+          >
+            ›
+          </button>
+        </div>
+      </div>
     </section>
   );
 }

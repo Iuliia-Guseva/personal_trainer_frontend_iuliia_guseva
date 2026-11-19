@@ -152,14 +152,14 @@ function CustomerList({
   }
 
   return (
-    <section className="customer-page">
-      <div className="customer-toolbar">
-        <div className="customer-heading">
+    <section className="listing-page">
+      <div className="listing-toolbar">
+        <div className="listing-heading">
           <h1>Customers</h1>
           <p>Manage your clients</p>
         </div>
-        <div className="customer-controls">
-          <label className="customer-search">
+        <div className="listing-controls">
+          <label className="listing-search">
             <span className="visually-hidden">Search customers</span>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="10.8" cy="10.8" r="6.3" />
@@ -175,8 +175,8 @@ function CustomerList({
               placeholder="Search customers..."
             />
           </label>
-          <div className="customer-actions">
-            <button type="button" className="customer-export" onClick={exportCustomers}>
+          <div className="listing-actions">
+            <button type="button" className="listing-export" onClick={exportCustomers}>
               Export CSV
             </button>
             {addingCustomer ? (
@@ -208,7 +208,7 @@ function CustomerList({
           onSaved={() => setEditingCustomer(null)}
         />
       )}
-      <div className="customer-table-container">
+      <div className="listing-table-container">
         <table>
           <thead>
             <tr>
@@ -228,10 +228,10 @@ function CustomerList({
                 <td>{customer.lastname}</td>
                 <td>{customer.email}</td>
                 <td>{customer.phone}</td>
-                <td className="customer-row-actions">
+                <td className="listing-row-actions">
                   <button
                     type="button"
-                    className="customer-edit"
+                    className="listing-edit"
                     onClick={() => setEditingCustomer(customer)}
                     disabled={deletingCustomerId !== null}
                     aria-label={`Edit ${customer.firstname} ${customer.lastname}`}
@@ -243,7 +243,7 @@ function CustomerList({
                   </button>
                   <button
                     type="button"
-                    className="customer-delete"
+                    className="listing-delete"
                     onClick={() => void handleDeleteCustomer(customer)}
                     disabled={deletingCustomerId !== null}
                     aria-label={`Delete ${customer.firstname} ${customer.lastname}`}
@@ -268,8 +268,8 @@ function CustomerList({
           </tbody>
         </table>
       </div>
-      <div className="customer-pagination" aria-label="Customer list pagination">
-        <label className="customer-page-size">
+      <div className="listing-pagination" aria-label="Customer list pagination">
+        <label className="listing-page-size">
           Rows per page:
           <select
             value={pageSize}
@@ -283,10 +283,10 @@ function CustomerList({
             <option value={15}>15</option>
           </select>
         </label>
-        <span className="customer-page-range" aria-live="polite">
+        <span className="listing-page-range" aria-live="polite">
           {firstCustomerNumber}-{lastCustomerNumber} of {visibleCustomers.length}
         </span>
-        <div className="customer-page-navigation">
+        <div className="listing-page-navigation">
           <button
             type="button"
             aria-label="Previous page"
