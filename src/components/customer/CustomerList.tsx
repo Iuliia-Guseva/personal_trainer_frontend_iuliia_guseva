@@ -21,6 +21,8 @@ function CustomerList({
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<CustomerSortKey>('id');
   const [ascending, setAscending] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
   const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -60,7 +62,17 @@ function CustomerList({
       });
   }, [customers, search, sortKey, ascending]);
 
+  const pageCount = Math.ceil(visibleCustomers.length / pageSize);
+  const currentPage = Math.min(page, pageCount || 1);
+  const pageCustomers = visibleCustomers.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const firstCustomerNumber = visibleCustomers.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const lastCustomerNumber = Math.min(currentPage * pageSize, visibleCustomers.length);
+
   function handleSort(key: CustomerSortKey) {
+    setPage(1);
     if (sortKey === key) {
       setAscending((current) => !current);
     } else {
@@ -79,6 +91,44 @@ function CustomerList({
         </button>
       </th>
     );
+  }
+
+  function exportCustomers() {
+    const headers = [
+      'ID',
+      'First name',
+      'Last name',
+      'Address',
+      'Postcode',
+      'City',
+      'Email',
+      'Phone',
+    ];
+    const rows = visibleCustomers.map((customer) => [
+      customer.id,
+      customer.firstname,
+      customer.lastname,
+      customer.streetaddress,
+      customer.postcode,
+      customer.city,
+      customer.email,
+      customer.phone,
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';'),
+      )
+      .join('\r\n');
+    const url = URL.createObjectURL(
+      new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customers.csv';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   async function handleDeleteCustomer(customer: Customer) {
@@ -102,8 +152,45 @@ function CustomerList({
   }
 
   return (
-    <section>
-      <h1>Customers</h1>
+    <section className="customer-page">
+      <div className="customer-toolbar">
+        <div className="customer-heading">
+          <h1>Customers</h1>
+          <p>Manage your clients</p>
+        </div>
+        <div className="customer-controls">
+          <label className="customer-search">
+            <span className="visually-hidden">Search customers</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.8" cy="10.8" r="6.3" />
+              <path d="m15.5 15.5 4.2 4.2" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search customers..."
+            />
+          </label>
+          <div className="customer-actions">
+            <button type="button" className="customer-export" onClick={exportCustomers}>
+              Export CSV
+            </button>
+            {addingCustomer ? (
+              <button type="button" onClick={() => setAddingCustomer(false)}>
+                Cancel
+              </button>
+            ) : (
+              <button type="button" onClick={() => setAddingCustomer(true)}>
+                <span aria-hidden="true">+</span> Add customer
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
       {deleteError && <p role="alert">{deleteError}</p>}
       {addingCustomer ? (
         <AddCustomer
@@ -111,11 +198,7 @@ function CustomerList({
           onCancel={() => setAddingCustomer(false)}
           onAdded={() => setAddingCustomer(false)}
         />
-      ) : (
-        <button type="button" onClick={() => setAddingCustomer(true)}>
-          Add customer
-        </button>
-      )}
+      ) : null}
       {editingCustomer && (
         <UpdateCustomer
           key={editingCustomer.id}
@@ -125,66 +208,103 @@ function CustomerList({
           onSaved={() => setEditingCustomer(null)}
         />
       )}
-      <label>
-        Search customers
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by name, address, email..."
-        />
-      </label>
-      <table>
-        <thead>
-          <tr>
-            {sortHeading('ID', 'id')}
-            {sortHeading('First name', 'firstname')}
-            {sortHeading('Last name', 'lastname')}
-            {sortHeading('Address', 'streetaddress')}
-            {sortHeading('Postcode', 'postcode')}
-            {sortHeading('City', 'city')}
-            {sortHeading('Email', 'email')}
-            {sortHeading('Phone', 'phone')}
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {visibleCustomers.map((customer) => (
-            <tr key={customer.id}>
-              <td>{customer.id}</td>
-              <td>{customer.firstname}</td>
-              <td>{customer.lastname}</td>
-              <td>{customer.streetaddress}</td>
-              <td>{customer.postcode}</td>
-              <td>{customer.city}</td>
-              <td>{customer.email}</td>
-              <td>{customer.phone}</td>
-              <td>
-                <button
-                  type="button"
-                  onClick={() => setEditingCustomer(customer)}
-                  disabled={deletingCustomerId !== null}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleDeleteCustomer(customer)}
-                  disabled={deletingCustomerId !== null}
-                  aria-label={`Delete ${customer.firstname} ${customer.lastname}`}
-                >
-                  {deletingCustomerId === customer.id ? 'Deleting...' : 'Delete'}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {visibleCustomers.length === 0 && (
+      <div className="customer-table-container">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={9}>No customers match your search.</td>
+              {sortHeading('#', 'id')}
+              {sortHeading('First name', 'firstname')}
+              {sortHeading('Last name', 'lastname')}
+              {sortHeading('Email', 'email')}
+              {sortHeading('Phone', 'phone')}
+              <th>Actions</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pageCustomers.map((customer) => (
+              <tr key={customer.id}>
+                <td>{customer.id}</td>
+                <td>{customer.firstname}</td>
+                <td>{customer.lastname}</td>
+                <td>{customer.email}</td>
+                <td>{customer.phone}</td>
+                <td className="customer-row-actions">
+                  <button
+                    type="button"
+                    className="customer-edit"
+                    onClick={() => setEditingCustomer(customer)}
+                    disabled={deletingCustomerId !== null}
+                    aria-label={`Edit ${customer.firstname} ${customer.lastname}`}
+                    title="Edit customer"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m14 5 5 5M4 20l4.3-.9L19 8.4a2.1 2.1 0 0 0-3-3L5.3 16.1 4 20Z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="customer-delete"
+                    onClick={() => void handleDeleteCustomer(customer)}
+                    disabled={deletingCustomerId !== null}
+                    aria-label={`Delete ${customer.firstname} ${customer.lastname}`}
+                    title="Delete customer"
+                  >
+                    {deletingCustomerId === customer.id ? (
+                      '...'
+                    ) : (
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 7h16M9 7V4h6v3m3 0-.8 13H6.8L6 7m4 3v6m4-6v6" />
+                      </svg>
+                    )}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {visibleCustomers.length === 0 && (
+              <tr>
+                <td colSpan={6}>No customers match your search.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="customer-pagination" aria-label="Customer list pagination">
+        <label className="customer-page-size">
+          Rows per page:
+          <select
+            value={pageSize}
+            onChange={(event) => {
+              setPageSize(Number(event.target.value));
+              setPage(1);
+            }}
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={15}>15</option>
+          </select>
+        </label>
+        <span className="customer-page-range" aria-live="polite">
+          {firstCustomerNumber}-{lastCustomerNumber} of {visibleCustomers.length}
+        </span>
+        <div className="customer-page-navigation">
+          <button
+            type="button"
+            aria-label="Previous page"
+            onClick={() => setPage(currentPage - 1)}
+            disabled={currentPage <= 1}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Next page"
+            onClick={() => setPage(currentPage + 1)}
+            disabled={currentPage >= pageCount}
+          >
+            ›
+          </button>
+        </div>
+      </div>
     </section>
   );
 }
