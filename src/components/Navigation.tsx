@@ -2,13 +2,11 @@ import { useEffect, useState } from 'react';
 import './Navigation.css';
 
 function Navigation() {
-  const [page, setPage] = useState(
-    window.location.hash === '#/trainings' ? 'trainings' : 'customers',
-  );
+  const [page, setPage] = useState(() => window.location.hash.slice(2) || 'customers');
 
   useEffect(() => {
     function syncPage() {
-      setPage(window.location.hash === '#/trainings' ? 'trainings' : 'customers');
+      setPage(window.location.hash.slice(2) || 'customers');
     }
 
     window.addEventListener('hashchange', syncPage);
@@ -45,6 +43,16 @@ function Navigation() {
             <path d="M7 7h10M7 17h10M5 4h14v16H5zM9 4V2m6 2V2M9 12h6" />
           </svg>
           <span>Trainings</span>
+        </a>
+        <a
+          href="#/calendar"
+          className={page === 'calendar' ? 'navigation-link active' : 'navigation-link'}
+          aria-current={page === 'calendar' ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4h14a2 2 0 0 1 2 2v13H3V6a2 2 0 0 1 2-2Zm3-2v4m8-4v4M3 9h18m-14 4h3m2 0h3m-8 4h3m2 0h3" />
+          </svg>
+          <span>Calendar</span>
         </a>
       </nav>
     </aside>

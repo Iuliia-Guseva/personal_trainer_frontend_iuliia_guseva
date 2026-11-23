@@ -10,6 +10,7 @@ import {
   updateCustomer,
 } from './api';
 import Navigation from './components/Navigation';
+import CalendarPage from './components/calendar/CalendarPage';
 import CustomerList from './components/customer/CustomerList';
 import TrainingList from './components/training/TrainingList';
 import type { Customer, CustomerDetails } from './types/CustomerTypes';
@@ -20,13 +21,11 @@ function App() {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(
-    window.location.hash === '#/trainings' ? 'trainings' : 'customers',
-  );
+  const [page, setPage] = useState(() => window.location.hash.slice(2) || 'customers');
 
   useEffect(() => {
     function syncPage() {
-      setPage(window.location.hash === '#/trainings' ? 'trainings' : 'customers');
+      setPage(window.location.hash.slice(2) || 'customers');
     }
 
     window.addEventListener('hashchange', syncPage);
@@ -119,6 +118,8 @@ function App() {
             onAddTraining={handleCreateTraining}
             onDeleteTraining={handleDeleteTraining}
           />
+        ) : page === 'calendar' ? (
+          <CalendarPage trainings={trainings} />
         ) : (
           <CustomerList
             customers={customers}
