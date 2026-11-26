@@ -54,6 +54,16 @@ function Navigation() {
           </svg>
           <span>Calendar</span>
         </a>
+        <a
+          href="#/statistics"
+          className={page === 'statistics' ? 'navigation-link active' : 'navigation-link'}
+          aria-current={page === 'statistics' ? 'page' : undefined}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 19V5m0 14h17M8 16v-5m5 5V7m5 9v-8" />
+          </svg>
+          <span>Statistics</span>
+        </a>
       </nav>
     </aside>
   );
