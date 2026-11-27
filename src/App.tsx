@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import './App.css';
 import {
   createCustomer,
@@ -12,10 +12,11 @@ import {
 import Navigation from './components/Navigation';
 import CalendarPage from './components/calendar/CalendarPage';
 import CustomerList from './components/customer/CustomerList';
-import StatisticsPage from './components/statistics/StatisticsPage';
 import TrainingList from './components/training/TrainingList';
 import type { Customer, CustomerDetails } from './types/CustomerTypes';
 import type { Training } from './types/TrainingTypes';
+
+const StatisticsPage = lazy(() => import('./components/statistics/StatisticsPage'));
 
 function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -122,7 +123,9 @@ function App() {
         ) : page === 'calendar' ? (
           <CalendarPage trainings={trainings} />
         ) : page === 'statistics' ? (
-          <StatisticsPage customers={customers} trainings={trainings} />
+          <Suspense fallback={<p role="status">Loading statistics...</p>}>
+            <StatisticsPage customers={customers} trainings={trainings} />
+          </Suspense>
         ) : (
           <CustomerList
             customers={customers}

@@ -1,4 +1,16 @@
 import { useMemo, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import type { Customer } from '../../types/CustomerTypes';
 import type { Training } from '../../types/TrainingTypes';
 import './StatisticsPage.css';
@@ -7,6 +19,20 @@ interface StatisticsPageProps {
   customers: Customer[];
   trainings: Training[];
 }
+
+interface ActivityStatistic {
+  activity: string;
+  minutes: number;
+  trainingCount: number;
+}
+
+interface WeekStatistic {
+  week: string;
+  count: number;
+  dateRange: string;
+}
+
+const chartColors = ['#4f91c4', '#61b79d', '#8880c8', '#658eb6', '#4f8999', '#d2a35f'];
 
 const trainingDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Helsinki',
@@ -41,6 +67,12 @@ function formatInputDate(value: string): string {
   return `${day}.${month}.${year}`;
 }
 
+function addDays(date: string, days: number): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const result = new Date(Date.UTC(year, month - 1, day + days));
+  return result.toISOString().slice(0, 10);
+}
+
 function StatisticsPage({ customers, trainings }: StatisticsPageProps) {
   const [today] = useState(() => getLocalDateKey(new Date()));
   const [startDate, setStartDate] = useState(() => `${today.slice(0, 7)}-01`);
@@ -58,6 +90,57 @@ function StatisticsPage({ customers, trainings }: StatisticsPageProps) {
     (total, training) => total + training.duration,
     0,
   );
+
+  const activityStats = useMemo(() => {
+    const activities = new Map<string, ActivityStatistic>();
+
+    periodTrainings.forEach((training) => {
+      const current = activities.get(training.activity) ?? {
+        activity: training.activity,
+        minutes: 0,
+        trainingCount: 0,
+      };
+      current.minutes += training.duration;
+      current.trainingCount += 1;
+      activities.set(training.activity, current);
+    });
+
+    return [...activities.values()].sort((first, second) => second.minutes - first.minutes);
+  }, [periodTrainings]);
+
+  const weeklyStats = useMemo(() => {
+    const dayCount =
+      (Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) /
+        86_400_000 +
+      1;
+    const weeks: WeekStatistic[] = Array.from(
+      { length: Math.ceil(dayCount / 7) },
+      (_, index) => {
+        const weekStart = addDays(startDate, index * 7);
+        const weekEnd = addDays(startDate, Math.min(index * 7 + 6, dayCount - 1));
+        return {
+          week: `W${index + 1}`,
+          count: 0,
+          dateRange: `${formatInputDate(weekStart)} - ${formatInputDate(weekEnd)}`,
+        };
+      },
+    );
+
+    periodTrainings.forEach((training) => {
+      const dayOffset =
+        (Date.parse(`${getTrainingDateKey(training.date)}T00:00:00Z`) -
+          Date.parse(`${startDate}T00:00:00Z`)) /
+        86_400_000;
+      const week = weeks[Math.floor(dayOffset / 7)];
+      if (week) {
+        week.count += 1;
+      }
+    });
+
+    return weeks;
+  }, [endDate, periodTrainings, startDate]);
+
+  const chartTotalDuration = activityStats.reduce((total, item) => total + item.minutes, 0);
 
   return (
     <section className="statistics-page">
@@ -141,6 +224,109 @@ function StatisticsPage({ customers, trainings }: StatisticsPageProps) {
             <strong>{totalDuration.toLocaleString('en-US')}</strong>
             <span>Total duration (min)</span>
           </div>
+        </article>
+      </div>
+
+      <div className="statistics-charts">
+        <article className="statistics-chart-card">
+          <h2>Training by Activity Type</h2>
+          {activityStats.length > 0 ? (
+            <div className="statistics-activity-chart">
+              <div className="statistics-donut">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={activityStats}
+                      dataKey="minutes"
+                      nameKey="activity"
+                      innerRadius="58%"
+                      outerRadius="88%"
+                      paddingAngle={1}
+                      stroke="none"
+                    >
+                      {activityStats.map((item, index) => (
+                        <Cell
+                          key={item.activity}
+                          fill={chartColors[index % chartColors.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name) => [
+                        `${Number(value).toLocaleString('en-US')} min`,
+                        name,
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="statistics-donut-center" aria-hidden="true">
+                  <strong>{chartTotalDuration.toLocaleString('en-US')}</strong>
+                  <span>minutes</span>
+                </div>
+              </div>
+              <ul className="statistics-activity-legend">
+                {activityStats.map((item, index) => {
+                  const percentage =
+                    chartTotalDuration > 0
+                      ? Math.round((item.minutes / chartTotalDuration) * 100)
+                      : 0;
+                  return (
+                    <li key={item.activity}>
+                      <span
+                        className="statistics-legend-swatch"
+                        style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                        aria-hidden="true"
+                      />
+                      <span className="statistics-legend-name">{item.activity}</span>
+                      <span className="statistics-legend-value">
+                        {item.minutes.toLocaleString('en-US')} min · {percentage}%
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <p className="statistics-chart-empty">No trainings in this date range.</p>
+          )}
+        </article>
+
+        <article className="statistics-chart-card">
+          <h2>Trainings per Week</h2>
+          {weeklyStats.some((week) => week.count > 0) ? (
+            <div className="statistics-weekly-chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={weeklyStats}
+                  margin={{ top: 8, right: 4, bottom: 0, left: -18 }}
+                  barCategoryGap="28%"
+                >
+                  <CartesianGrid vertical={false} stroke="#e8edf2" />
+                  <XAxis
+                    dataKey="week"
+                    axisLine={{ stroke: '#dce4ed' }}
+                    tickLine={false}
+                    tick={{ fill: '#627186', fontSize: 11 }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#627186', fontSize: 11 }}
+                    width={34}
+                  />
+                  <Tooltip
+                    formatter={(value) => [Number(value), 'Trainings']}
+                    labelFormatter={(_, payload) => payload[0]?.payload.dateRange ?? ''}
+                    cursor={{ fill: '#f3f6fa' }}
+                  />
+                  <Bar dataKey="count" fill="#75a9d2" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p className="statistics-chart-empty">No trainings in this date range.</p>
+          )}
         </article>
       </div>
     </section>
