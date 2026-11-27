@@ -3,16 +3,13 @@ Front-end application for managing customers and trainings as a Front-End Progra
 
 ## Features
 
-- Separate customer and training list pages.
-- Navigation between the customer and training pages.
-- Sortable columns on both list pages; click a column heading to change the sort order.
-- Search across customer fields and training details, including the customer's name.
+- Customer and training list pages with sortable columns and search.
+- Customer creation, editing, and deletion. Deleting a customer also deletes their training sessions.
+- Training creation for a selected customer and training deletion with confirmation.
+- Calendar views for scheduled trainings.
+- Statistics for a selected date range, including customer and training totals, total duration, training minutes by activity, and trainings per week.
+- Navigation between the customer, training, calendar, and statistics pages.
 - Customer names displayed in the training list.
-- Customer creation.
-- Customer editing.
-- Customer deletion with confirmation; deleting a customer also deletes their training sessions.
-- Training creation for a selected customer, with date and time input.
-- Training deletion with confirmation.
 - Loading and API error states.
 
 ## Technologies
@@ -20,7 +17,24 @@ Front-end application for managing customers and trainings as a Front-End Progra
 - React
 - TypeScript
 - Vite
+- Recharts
 - Personal Trainer REST API
+
+## Development
+
+Install dependencies and start the development server:
+
+```sh
+npm install
+npm run dev
+```
+
+Create a production build or run the linter:
+
+```sh
+npm run build
+npm run lint
+```
 
 ## API
 
